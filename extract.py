@@ -18,7 +18,7 @@ def list_content(payload_file_name):
                                          part.new_partition_info.size))
 
 
-def extract(payload_file_name, output_dir="output", partition_names=None):
+def extract(payload_file_name, output_dir="output", source_dir="source", partition_names=None):
     try:
         os.makedirs(output_dir)
     except OSError as e:
@@ -29,20 +29,36 @@ def extract(payload_file_name, output_dir="output", partition_names=None):
         payload = update_payload.Payload(payload_file)
         payload.Init()
 
-        if payload.IsDelta():
-            print("Delta payloads are not supported")
-            exit(1)
-
         helper = applier.PayloadApplier(payload)
-        for part in payload.manifest.partitions:
-            if partition_names and part.partition_name not in partition_names:
-                continue
-            print("Extracting {}".format(part.partition_name))
-            output_file = os.path.join(output_dir, part.partition_name)
-            helper._ApplyToPartition(
-                part.operations, part.partition_name,
-                'install_operations', output_file,
-                part.new_partition_info)
+
+        if payload.IsDelta():
+            print("Delta payload Detected")
+            if not os.path.isdir(source_dir):
+                raise SystemExit("Source directory not found")
+
+            for part in payload.manifest.partitions:
+                if partition_names and part.partition_name not in partition_names:
+                    continue
+                source_file = os.path.join(source_dir, part.partition_name + ".img")
+                if not os.path.isfile(source_file):
+                    print("Source for partition " + part.partition_name + " not found, skipping...")
+                    continue
+                print("Patching {}".format(part.partition_name))
+                output_file = os.path.join(output_dir, part.partition_name)
+                helper._ApplyToPartition(
+                    part.operations, part.partition_name,
+                    'install_operations', output_file,
+                    part.new_partition_info, source_file)
+        else:
+            for part in payload.manifest.partitions:
+                if partition_names and part.partition_name not in partition_names:
+                    continue
+                print("Extracting {}".format(part.partition_name))
+                output_file = os.path.join(output_dir, part.partition_name)
+                helper._ApplyToPartition(
+                    part.operations, part.partition_name,
+                    'install_operations', output_file,
+                    part.new_partition_info)
 
 
 if __name__ == '__main__':
@@ -51,6 +67,8 @@ if __name__ == '__main__':
                         help="Path to the payload.bin")
     parser.add_argument("--output_dir", default="output",
                         help="Output directory")
+    parser.add_argument("--source_dir", default="source",
+                        help="Source directory (For delta payloads)")
     parser.add_argument("--partitions", type=str, nargs='+',
                         help="Name of the partitions to extract")
     parser.add_argument("--list_partitions", action="store_true",
@@ -60,4 +78,4 @@ if __name__ == '__main__':
     if args.list_partitions:
         list_content(args.payload)
     else:
-        extract(args.payload, args.output_dir, args.partitions)
+        extract(args.payload, args.output_dir, args.source_dir, args.partitions)
