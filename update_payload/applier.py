@@ -49,6 +49,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import platform
 
 from update_payload import common
 from update_payload.error import PayloadError
@@ -237,8 +238,10 @@ class PayloadApplier(object):
     self.block_size = payload.manifest.block_size
     self.minor_version = payload.manifest.minor_version
     self.bsdiff_in_place = bsdiff_in_place
-    self.bspatch_path = bspatch_path or 'bspatch'
-    self.puffpatch_path = puffpatch_path or 'puffin'
+    myOS=platform.system()
+    tools_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "../tools", myOS, "bin")
+    self.bspatch_path = os.path.join(tools_dir, 'bspatch')
+    self.puffpatch_path = os.path.join(tools_dir, 'puffin')
     self.truncate_to_expected_size = truncate_to_expected_size
 
   def _ApplyReplaceOperation(self, op, op_name, out_data, part_file, part_size):
