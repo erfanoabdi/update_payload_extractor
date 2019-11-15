@@ -44,7 +44,7 @@ def extract(payload_file_name, output_dir="output", source_dir="source", partiti
                     print("Source for partition " + part.partition_name + " not found, skipping...")
                     continue
                 print("Patching {}".format(part.partition_name))
-                output_file = os.path.join(output_dir, part.partition_name)
+                output_file = os.path.join(output_dir, part.partition_name + ".img")
                 helper._ApplyToPartition(
                     part.operations, part.partition_name,
                     'install_operations', output_file,
@@ -54,7 +54,7 @@ def extract(payload_file_name, output_dir="output", source_dir="source", partiti
                 if partition_names and part.partition_name not in partition_names:
                     continue
                 print("Extracting {}".format(part.partition_name))
-                output_file = os.path.join(output_dir, part.partition_name)
+                output_file = os.path.join(output_dir, part.partition_name + ".img")
                 helper._ApplyToPartition(
                     part.operations, part.partition_name,
                     'install_operations', output_file,
