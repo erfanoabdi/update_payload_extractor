@@ -84,13 +84,13 @@ def _VerifySha256(file_obj, expected_hash, name, length=-1):
     hasher.update(data)
 
   if length >= 0 and max_length > 0:
-    raise PayloadError(
-        'insufficient data (%d instead of %d) when verifying %s' %
+    print(
+        'Warn: insufficient data (%d instead of %d) when verifying %s' %
         (length - max_length, length, name))
 
   actual_hash = hasher.digest()
   if actual_hash != expected_hash:
-    raise PayloadError('%s hash (%s) not as expected (%s)' %
+      print('Warn: %s hash (%s) not as expected (%s)' %
                        (name, common.FormatSha256(actual_hash),
                         common.FormatSha256(expected_hash)))
 
